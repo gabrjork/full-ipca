@@ -66,9 +66,50 @@ print(mapeamento_codigo_item)
 
 # Lista de códigos fornecida pelo usuário para serviços subjacentes
 codigos_servicos_subjacentes <- c(
-  7432, 7448, 7449, 7453, 7548, 7639, 7643, 7647, 7648, 7650, 7653, 107656,
-  7685, 7686, 12435, 12436, 7690, 7731, 7732, 7733, 12424, 12425, 12426,
-  7747, 7763, 7784, 7715, 12421, 7719, 7721, 7724, 7727, 7728
+  7432, # Aliment. fora do domicilio
+  7448, # Aluguel residencial
+  7449, # Condomínio
+  7453, # Mudança
+  7548, # Consertos e manutenção
+  7639, # Transporte escolar
+  7643, # Seguro voluntario de veículo
+  7647, # Conserto de automóvel
+  7648, # Estacionamento
+  107656, # Aluguel de veículo
+  7653, # Pintura de veículo
+  7685, # Médico
+  7686, # Dentista
+  12414, # Aparelho ortodontico
+  12435, # Fisioterapia
+  12436, # Psicologo
+  7690, # Serviços laboratoriais e hospitalares
+  7715, # Costureira
+  12421, # Manicure
+  47654, # Cabeleireiro e barbeiro
+  7721, # Depilação
+  7724, # Despachante
+  7727, # Serviço Bancário
+  47655, # Sobrancelha
+  7733, # Clube
+  47657, # Tratamento de animais (clínica)
+  47658, # Casa noturna
+  47661, # Serviço de higiene para animais
+  47662 # Cinema, teatro e concertos
+)
+
+# Lista de códigos para serviços intensivos em trabalho
+codigos_servicos_intensivos_trabalho <- c(
+  7685, # Médico
+  7686, # Dentista
+  12435, # Fisioterapia
+  12436, # Psicologo
+  7715, # Costureira
+  12421, # Manicure
+  47654, # Cabeleireiro e barbeiro
+  7724, # Despachante
+  47655, # Sobrancelha
+  107641, # Mão de obra
+  7720 # Empregado doméstico
 )
 
 # Identificando os nomes dos itens correspondentes aos códigos fornecidos
@@ -88,6 +129,25 @@ codigos_nao_encontrados <- setdiff(as.character(codigos_servicos_subjacentes), m
 if (length(codigos_nao_encontrados) > 0) {
   print("Códigos não encontrados na base:")
   print(codigos_nao_encontrados)
+}
+
+# Identificando os nomes dos itens para serviços intensivos em trabalho
+itens_servicos_intensivos_trabalho_por_codigo <- mapeamento_codigo_item %>%
+  filter(item_codigo %in% as.character(codigos_servicos_intensivos_trabalho)) %>%
+  pull(variable)
+
+print("=== ITENS PARA NÚCLEO SERVIÇOS INTENSIVOS EM TRABALHO (POR CÓDIGO) ===")
+print("Códigos fornecidos:")
+print(codigos_servicos_intensivos_trabalho)
+print("Itens correspondentes encontrados:")
+print(itens_servicos_intensivos_trabalho_por_codigo)
+print(paste("Total de itens encontrados:", length(itens_servicos_intensivos_trabalho_por_codigo)))
+
+# Verificando se alguns códigos não foram encontrados
+codigos_nao_encontrados_trabalho <- setdiff(as.character(codigos_servicos_intensivos_trabalho), mapeamento_codigo_item$item_codigo)
+if (length(codigos_nao_encontrados_trabalho) > 0) {
+  print("Códigos não encontrados na base (serviços intensivos trabalho):")
+  print(codigos_nao_encontrados_trabalho)
 }
 
 # Separando variações mensais (v=63) dos pesos (v=66) usando código da variável
@@ -195,8 +255,22 @@ if (length(servicos_subj_real) > 0) {
   print("Nenhum item encontrado!")
 }
 
-print("SERVIÇOS INTENSIVOS EM TRABALHO:")
-servicos_trab_real <- encontrar_itens(ipca_variacoes_transposta$item, servicos_intensivos_trabalho)
+# NÚCLEO SERVIÇOS INTENSIVOS EM TRABALHO - Usando códigos específicos
+print("SERVIÇOS INTENSIVOS EM TRABALHO (por códigos específicos):")
+servicos_trab_real <- itens_servicos_intensivos_trabalho_por_codigo
+print(paste("Total de itens:", length(servicos_trab_real)))
+print("Itens incluídos:")
+if (length(servicos_trab_real) > 0) {
+  for (i in seq_len(min(10, length(servicos_trab_real)))) {
+    print(paste(" -", servicos_trab_real[i]))
+  }
+  if (length(servicos_trab_real) > 10) {
+    print(paste("... e mais", length(servicos_trab_real) - 10, "itens"))
+  }
+} else {
+  print("Nenhum item encontrado!")
+}
+
 print("INDUSTRIAIS SUBJACENTES:")
 industriais_subj_real <- encontrar_itens(ipca_variacoes_transposta$item, industriais_subjacentes)
 
@@ -206,18 +280,21 @@ print(paste("Quantidade:", length(servicos_subj_real)))
 print("Primeiros 10 itens:")
 print(head(servicos_subj_real, 10))
 
-print("\nSERVIÇOS INTENSIVOS EM TRABALHO:")
-print(servicos_trab_real)
+print("\nSERVIÇOS INTENSIVOS EM TRABALHO (baseado em códigos específicos):")
+print(paste("Quantidade:", length(servicos_trab_real)))
+print("Primeiros 10 itens:")
+print(head(servicos_trab_real, 10))
+
 print("\nINDUSTRIAIS SUBJACENTES:")
 print(industriais_subj_real)
 
 # Verificando se há diferença entre os núcleos de serviços
 print("\n=== VERIFICAÇÃO DE DIFERENÇAS ===")
-print("Núcleo Serviços Subjacentes agora usa códigos específicos fornecidos pelo usuário")
+print("Ambos os núcleos de serviços agora usam códigos específicos")
 
 print("\nItens encontrados na base:")
 print(paste("Serviços Subjacentes encontrados:", length(servicos_subj_real), "itens específicos"))
-print(paste("Serviços Intensivos Trabalho encontrados:", paste(servicos_trab_real, collapse = ", ")))
+print(paste("Serviços Intensivos Trabalho encontrados:", length(servicos_trab_real), "itens específicos"))
 
 print("\nComparação:")
 print("Itens únicos em Serviços Subjacentes:")
@@ -230,48 +307,6 @@ print(intersect(servicos_subj_real, servicos_trab_real))
 # Verificando se os vetores são realmente diferentes
 print(paste("Os vetores são idênticos?", identical(servicos_subj_real, servicos_trab_real)))
 
-# ===== Seção comentada - diferenciação agora é feita por códigos específicos =====
-# # FORÇANDO DIFERENCIAÇÃO - Vou criar manualmente as diferenças
-# print("\n=== FORÇANDO DIFERENCIAÇÃO MANUAL ===")
-#
-# # Primeiro, vamos ver se "Recreação e cultura" realmente existe
-# recreacao_items <- ipca_variacoes_transposta$item[grepl("Recreação", ipca_variacoes_transposta$item, ignore.case = TRUE)]
-# print(paste("Itens com 'Recreação':", paste(recreacao_items, collapse = ", ")))
-#
-# cultura_items <- ipca_variacoes_transposta$item[grepl("Cultura", ipca_variacoes_transposta$item, ignore.case = TRUE)]
-# print(paste("Itens com 'Cultura':", paste(cultura_items, collapse = ", ")))
-#
-# # Criando os núcleos manualmente com diferenciação forçada
-# print("\n=== CRIANDO NÚCLEOS COM DIFERENCIAÇÃO FORÇADA ===")
-#
-# # Núcleo Serviços Subjacentes - TODOS os itens encontrados
-# servicos_subj_real_forcado <- unique(c(
-#   ipca_variacoes_transposta$item[grepl("Serviços de saúde", ipca_variacoes_transposta$item, ignore.case = TRUE)],
-#   ipca_variacoes_transposta$item[grepl("Educação", ipca_variacoes_transposta$item, ignore.case = TRUE)],
-#   ipca_variacoes_transposta$item[grepl("Recreação", ipca_variacoes_transposta$item, ignore.case = TRUE)],
-#   ipca_variacoes_transposta$item[grepl("Cultura", ipca_variacoes_transposta$item, ignore.case = TRUE)],
-#   ipca_variacoes_transposta$item[grepl("Despesas pessoais", ipca_variacoes_transposta$item, ignore.case = TRUE)]
-# ))
-#
-# # Núcleo Serviços Intensivos em Trabalho - SEM recreação/cultura
-# servicos_trab_real_forcado <- unique(c(
-#   ipca_variacoes_transposta$item[grepl("Serviços de saúde", ipca_variacoes_transposta$item, ignore.case = TRUE)],
-#   ipca_variacoes_transposta$item[grepl("Educação", ipca_variacoes_transposta$item, ignore.case = TRUE)],
-#   ipca_variacoes_transposta$item[grepl("Despesas pessoais", ipca_variacoes_transposta$item, ignore.case = TRUE)]
-# ))
-#
-# print("Serviços Subjacentes (forçado):")
-# print(servicos_subj_real_forcado)
-# print("Serviços Intensivos Trabalho (forçado):")
-# print(servicos_trab_real_forcado)
-#
-# print("\nDiferença forçada:")
-# print(paste("Únicos em Subjacentes:", paste(setdiff(servicos_subj_real_forcado, servicos_trab_real_forcado), collapse = ", ")))
-# print(paste("Únicos em Intensivos:", paste(setdiff(servicos_trab_real_forcado, servicos_subj_real_forcado), collapse = ", ")))
-#
-# # Sobrescrevendo as variáveis originais
-# servicos_subj_real <- servicos_subj_real_forcado
-# servicos_trab_real <- servicos_trab_real_forcado
 
 # ====================== Cálculo dos núcleos de inflação ========================
 
@@ -323,7 +358,7 @@ calcular_nucleo_ponderado <- function(variacoes_df, pesos_df, itens_selecionados
 # Calculando os três núcleos
 print("\n=== CALCULANDO NÚCLEOS DE INFLAÇÃO ===")
 print("Serviços Subjacentes: baseado em códigos específicos fornecidos pelo usuário")
-print("Serviços Intensivos em Trabalho: baseado em busca por palavras-chave")
+print("Serviços Intensivos em Trabalho: baseado em códigos específicos fornecidos pelo usuário")
 print("Industriais Subjacentes: baseado em busca por palavras-chave")
 
 nucleo_servicos_subjacentes <- calcular_nucleo_ponderado(
